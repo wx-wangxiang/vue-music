@@ -9,6 +9,11 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
+const axios = require('axios')
+const express = require('express')
+const app = express()
+var apiRoutes = express.Router()
+app.use('/api', apiRoutes)
 
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
@@ -42,6 +47,28 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     quiet: true, // necessary for FriendlyErrorsPlugin
     watchOptions: {
       poll: config.dev.poll,
+    },
+    before(app) {
+      app.get('/api/getCommend', (req, res) => {
+        const url = 'https://shc.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
+
+        axios.get(url, {
+          params: req.query
+        }).then((response) => {
+          var ret = response.data
+          if (typeof ret === 'string') {
+            var reg = /^\w+\(({[^()]+})\)$/
+            var matches = ret.match(reg)
+            if (matches) {
+              ret = JSON.parse(matches[1])
+            }
+          }
+          console.log(ret, 'ret');
+          res.json(ret)
+        }).catch((e) => {
+          console.log(e)
+        })
+      })
     }
   },
   plugins: [
@@ -85,8 +112,8 @@ module.exports = new Promise((resolve, reject) => {
           messages: [`Your application is running here: http://${devWebpackConfig.devServer.host}:${port}`],
         },
         onErrors: config.dev.notifyOnErrors
-        ? utils.createNotifierCallback()
-        : undefined
+          ? utils.createNotifierCallback()
+          : undefined
       }))
 
       resolve(devWebpackConfig)
