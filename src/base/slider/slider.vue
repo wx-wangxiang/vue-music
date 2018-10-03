@@ -4,13 +4,13 @@
       <slot>
       </slot>
     </div>
-    <!-- <div class="dots">
+    <div class="dots">
       <span class="dot" 
       :class="{active: currentPageIndex === index }" 
       v-for="(item, index) in dots"
       :key="index"
       ></span>
-    </div> -->
+    </div>
   </div>
 </template>
 
@@ -53,21 +53,23 @@
 
       window.addEventListener('resize', () => {
         if (!this.slider) {
-          return
+          return false;
         }
-        this._setSliderWidth(true)
-        this.slider.refresh()
+        this._setSliderWidth(true);
+        this.slider.refresh();
       })
     },
     destroyed() {
-      clearTimeout(this.timer)
+      clearTimeout(this.timer);
     },
     methods: {
+      // 设置slider容器的宽度
       _setSliderWidth(isResize) {
-        this.children = this.$refs.sliderGroup.children
+        this.children = this.$refs.sliderGroup.children;
 
-        let width = 0
-        let sliderWidth = this.$refs.slider.clientWidth
+        let width = 0;
+        let sliderWidth = this.$refs.slider.clientWidth;
+
         for (let i = 0; i < this.children.length; i++) {
           let child = this.children[i]
           addClass(child, 'slider-item')
@@ -86,21 +88,21 @@
           scrollY: false,
           momentum: false,
           snap: {
-            loop: true
+            loop: true,
+            threshold: 0.3,
+            speed: 400
           },
           snapThreshold: 0.3,
           snapSpeed: 400
-        })
+        });
 
         this.slider.on('scrollEnd', () => {
-          let pageIndex = this.slider.getCurrentPage().pageX
-          if (this.loop) {
-            pageIndex -= 1
-          }
+          let pageIndex = this.slider.getCurrentPage().pageX;
+
+          console.log('scrollEnd', pageIndex);
           this.currentPageIndex = pageIndex
 
           if (this.autoPlay) {
-            clearTimeout(this.timer)
             this._play()
           }
         })
@@ -109,13 +111,10 @@
         this.dots = new Array(this.children.length)
       },
       _play() {
-        let pageIndex = this.currentPageIndex + 1
-        if (this.loop) {
-          pageIndex += 1
-        }
+        clearTimeout(this.timer)
         this.timer = setTimeout(() => {
-          this.slider.goToPage(pageIndex, 0, 400)
-        }, this.interval)
+          this.slider.next();
+        }, this.interval);
       }
     }
   }
