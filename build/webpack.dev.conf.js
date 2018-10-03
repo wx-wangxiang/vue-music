@@ -49,7 +49,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
       poll: config.dev.poll,
     },
     before(app) {
-      app.get('/api/getCommend', (req, res) => {
+      app.get('/api/getRecommend', (req, res) => {
         const url = 'https://shc.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
 
         axios.get(url, {
@@ -57,18 +57,33 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         }).then((response) => {
           var ret = response.data
           if (typeof ret === 'string') {
+            // 解析jsonp格式的接口的返回数据
             var reg = /^\w+\(({[^()]+})\)$/
             var matches = ret.match(reg)
             if (matches) {
               ret = JSON.parse(matches[1])
             }
           }
-          console.log(ret, 'ret');
           res.json(ret)
         }).catch((e) => {
           console.log(e)
         })
-      })
+      });
+      app.get('/api/getDiscList', (req, res) => {
+        const url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          res.json(response.data);
+        }).catch((e) => {
+          console.log(e);
+        });
+      });
     }
   },
   plugins: [
